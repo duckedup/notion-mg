@@ -1,0 +1,37 @@
+[package]
+name = "notion-mg"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.95"
+description = "A CLI tool and SDK for the Notion API, designed for AI agent consumption"
+license = "MIT"
+repository = "https://github.com/duckedup/notion-mg"
+keywords = ["notion", "api", "cli", "productivity", "sdk"]
+categories = ["command-line-utilities", "development-tools"]
+readme = "README.md"
+
+[package.metadata.binstall]
+pkg-url = "{ repo }/releases/download/v{ version }/{ name }-{ target }.tar.gz"
+pkg-fmt = "tgz"
+
+[package.metadata.binstall.overrides.x86_64-pc-windows-msvc]
+pkg-url = "{ repo }/releases/download/v{ version }/{ name }-{ target }.zip"
+pkg-fmt = "zip"
+
+[dependencies]
+clap = { version = "4", features = ["derive", "env"] }
+reqwest = { version = "0.12", features = ["json", "rustls-tls"], default-features = false }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tokio = { version = "1", features = ["full"] }
+toml = "0.8"
+dirs = "6"
+thiserror = "2"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+
+[dev-dependencies]
+wiremock = "0.6"
+assert_cmd = "2"
+predicates = "3"
+tempfile = "3"

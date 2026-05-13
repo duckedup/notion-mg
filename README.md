@@ -1,1 +1,230 @@
 # notion-mg
+
+A CLI tool and SDK for the [Notion API](https://developers.notion.com/), designed for AI agent consumption.
+
+Both a standalone CLI binary and a Rust library — use it from the command line or import it as a crate.
+
+## Install
+
+### From crates.io
+
+```bash
+cargo install notion-mg
+```
+
+### Pre-built binaries
+
+Download from [GitHub Releases](https://github.com/duckedup/notion-mg/releases), or use `cargo-binstall`:
+
+```bash
+cargo binstall notion-mg
+```
+
+## Authentication
+
+Get a Notion integration token from [notion.so/profile/integrations](https://www.notion.so/profile/integrations).
+
+API key is resolved in order: `--api-key` flag > `NOTION_API_KEY` env var > config file.
+
+```bash
+# Store in config
+notion-mg auth init --token ntn_xxx
+
+# Or use env var
+export NOTION_API_KEY=ntn_xxx
+
+# Check status
+notion-mg auth status
+```
+
+## Usage
+
+### Output formats
+
+All commands support three output formats:
+
+- **Pretty** (default) — human-readable tables and detail views
+- `--json` — compact JSON for piping
+- `--json-pretty` — formatted JSON
+
+### Pages
+
+```bash
+# Get a page
+notion-mg pages get <page-id>
+
+# Search for pages
+notion-mg pages search --query "meeting notes"
+
+# Create a page under another page
+notion-mg pages create --parent-id <page-id> --title "New Page"
+
+# Create a page in a database
+notion-mg pages create --parent-id <db-id> --parent-type database --title "New Entry"
+
+# Update a page
+notion-mg pages update <page-id> --properties '{"Status": {"select": {"name": "Done"}}}'
+
+# Archive a page
+notion-mg pages archive <page-id>
+```
+
+### Databases
+
+```bash
+# Get database schema
+notion-mg databases get <database-id>
+
+# Query a database
+notion-mg databases query <database-id>
+
+# Query with filter
+notion-mg databases query <database-id> --filter '{"property": "Status", "select": {"equals": "In Progress"}}'
+
+# Query with sort
+notion-mg databases query <database-id> --sorts '[{"property": "Created", "direction": "descending"}]'
+
+# Search for databases
+notion-mg databases search --query "tasks"
+```
+
+### Blocks
+
+```bash
+# Get a block
+notion-mg blocks get <block-id>
+
+# List children of a page or block
+notion-mg blocks children <page-id>
+
+# Append content to a page
+notion-mg blocks append <page-id> --children '[{"type": "paragraph", "paragraph": {"rich_text": [{"type": "text", "text": {"content": "Hello world"}}]}}]'
+
+# Delete a block
+notion-mg blocks delete <block-id>
+```
+
+### Users
+
+```bash
+# List all users
+notion-mg users list
+
+# Get current bot user
+notion-mg users me
+
+# Get a specific user
+notion-mg users get <user-id>
+```
+
+### Comments
+
+```bash
+# List comments on a page
+notion-mg comments list --block-id <page-id>
+
+# Add a comment
+notion-mg comments create --page-id <page-id> --text "Looks good!"
+```
+
+### Search
+
+```bash
+# Search everything
+notion-mg search --query "project plan"
+
+# Search only pages
+notion-mg search --query "meeting" --object-type page
+
+# Search only databases
+notion-mg search --object-type database
+
+# Raw search with full JSON body
+notion-mg raw-search '{"query": "test", "page_size": 5}'
+```
+
+### Pagination
+
+List commands support pagination:
+
+```bash
+# Limit results
+notion-mg pages search --query "notes" --limit 10
+
+# Fetch all pages
+notion-mg databases query <database-id> --all
+
+# Manual cursor pagination
+notion-mg users list --page-size 10 --start-cursor <cursor>
+```
+
+## SDK Usage
+
+Add to your `Cargo.toml`:
+
+```toml
+[dependencies]
+notion-mg = "0.1"
+```
+
+```rust
+use notion_mg::client::NotionClient;
+
+#[tokio::main]
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let client = NotionClient::new("ntn_xxx")?;
+
+    // Get current user
+    let me = client.get_me().await?;
+    println!("Bot: {:?}", me.name);
+
+    // Search pages
+    let results = client.search_pages(Some("meeting"), None, None).await?;
+    for page in results.results {
+        println!("{}: {}", page.id, page.title());
+    }
+
+    // Query a database
+    let entries = client.query_database("db-id", None, None, None, None).await?;
+    for entry in entries.results {
+        println!("{}", entry.title());
+    }
+
+    // Get page content
+    let blocks = client.get_block_children("page-id", None, None).await?;
+    for block in blocks.results {
+        println!("[{}] {}", block.block_type, block.plain_text());
+    }
+
+    Ok(())
+}
+```
+
+## Error Handling
+
+Errors output structured JSON to stderr with distinct exit codes:
+
+| Exit Code | Meaning |
+|-----------|---------|
+| 0 | Success |
+| 1 | General error |
+| 2 | Authentication error |
+| 3 | Rate limited |
+| 4 | Not found |
+| 5 | Invalid input |
+| 6 | API error |
+
+## Development
+
+Requires [just](https://github.com/casey/just) as a task runner.
+
+```bash
+just check    # fmt + clippy + test
+just fmt      # format code
+just lint     # run clippy
+just test     # run tests
+```
+
+## License
+
+MIT
