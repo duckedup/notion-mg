@@ -9,51 +9,46 @@ env:
 
 jobs:
   version-check:
-    name: Version Bump Check
+    name: Version bump check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
-      - name: Get version from PR branch
-        id: pr_version
-        run: |
-          VERSION=$(grep '^version' Cargo.toml | head -1 | sed 's/.*"\(.*\)".*/\1/')
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-
-      - name: Get version from main branch
-        id: main_version
-        run: |
-          git show origin/main:Cargo.toml > /tmp/main_cargo.toml
-          VERSION=$(grep '^version' /tmp/main_cargo.toml | head -1 | sed 's/.*"\(.*\)".*/\1/')
-          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
-
       - name: Check version was bumped
         run: |
-          if [ "${{ steps.pr_version.outputs.version }}" = "${{ steps.main_version.outputs.version }}" ]; then
-            echo "::error::Version in Cargo.toml has not been bumped. Please update the version."
+          PR_VERSION=$(grep '^version' Cargo.toml | head -1 | sed 's/.*"\(.*\)".*/\1/')
+          MAIN_VERSION=$(git show origin/main:Cargo.toml | grep '^version' | head -1 | sed 's/.*"\(.*\)".*/\1/')
+          echo "PR version:   $PR_VERSION"
+          echo "main version: $MAIN_VERSION"
+          if [ "$PR_VERSION" = "$MAIN_VERSION" ]; then
+            echo "::error::Version in Cargo.toml ($PR_VERSION) has not been bumped from main. Update the version before merging."
             exit 1
           fi
-          echo "Version bumped: ${{ steps.main_version.outputs.version }} -> ${{ steps.pr_version.outputs.version }}"
 
   check:
-    name: Check
+    name: Format, Lint, Test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: dtolnay/rust-toolchain@stable
+      - name: Install Rust
+        run: |
+          rustup toolchain install stable --profile default --component clippy
+          rustup default stable
+
+      - name: Cache cargo registry and build
+        uses: actions/cache@v5
         with:
-          components: rustfmt, clippy
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
 
-      - uses: Swatinem/rust-cache@v2
+      - uses: extractions/setup-just@v4
 
-      - name: Format check
-        run: cargo fmt -- --check
-
-      - name: Clippy
-        run: cargo clippy -- -D warnings
-
-      - name: Test
-        run: cargo test
+      - name: Run checks
+        run: just check
