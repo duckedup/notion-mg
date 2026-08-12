@@ -8,6 +8,9 @@ pub enum CliError {
     #[error("Rate limited: {0}")]
     RateLimited(String),
 
+    #[error("Forbidden: {0}")]
+    Forbidden(String),
+
     #[error("Not found: {0}")]
     NotFound(String),
 
@@ -25,6 +28,7 @@ impl CliError {
     pub fn exit_code(&self) -> i32 {
         match self {
             Self::Auth(_) => 2,
+            Self::Forbidden(_) => 7,
             Self::RateLimited(_) => 3,
             Self::NotFound(_) => 4,
             Self::InvalidInput(_) => 5,
@@ -36,6 +40,7 @@ impl CliError {
     pub fn error_type(&self) -> &str {
         match self {
             Self::Auth(_) => "auth_error",
+            Self::Forbidden(_) => "forbidden",
             Self::RateLimited(_) => "rate_limited",
             Self::NotFound(_) => "not_found",
             Self::InvalidInput(_) => "invalid_input",

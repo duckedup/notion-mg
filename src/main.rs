@@ -54,6 +54,7 @@ async fn main() {
                 Commands::Blocks(action) => action.run(&client, format).await,
                 Commands::Users(action) => action.run(&client, format).await,
                 Commands::Comments(action) => action.run(&client, format).await,
+                Commands::Markdown(action) => action.run(&client, format).await,
                 Commands::Search(args) => args.run(&client, format).await,
                 Commands::RawSearch(args) => args.run(&client, format).await,
                 Commands::Auth(_) => unreachable!(),

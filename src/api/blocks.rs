@@ -68,6 +68,23 @@ impl NotionClient {
             .await
     }
 
+    pub async fn list_all_block_children(&self, block_id: &str) -> Result<Vec<Block>, CliError> {
+        crate::client::paginator::paginate(
+            &crate::client::paginator::PaginationParams {
+                page_size: Some(100),
+                start_cursor: None,
+                fetch_all: true,
+                limit: None,
+            },
+            |cursor, size| {
+                let client = self.clone();
+                let block_id = block_id.to_string();
+                async move { client.get_block_children(&block_id, cursor, size).await }
+            },
+        )
+        .await
+    }
+
     pub async fn append_block_children(
         &self,
         block_id: &str,

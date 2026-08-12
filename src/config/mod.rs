@@ -9,8 +9,18 @@ pub struct Config {
     pub api_key: Option<String>,
 }
 
+/// Overrides the config directory. Lets tests and sandboxes run against a known-empty
+/// config instead of whatever the developer has stored in their home directory.
+pub const CONFIG_DIR_ENV: &str = "NOTION_MG_CONFIG_DIR";
+
 impl Config {
     pub fn config_dir() -> Result<PathBuf, CliError> {
+        if let Ok(dir) = std::env::var(CONFIG_DIR_ENV)
+            && !dir.is_empty()
+        {
+            return Ok(PathBuf::from(dir));
+        }
+
         let dir = dirs::config_dir()
             .ok_or_else(|| CliError::General("Could not determine config directory".to_string()))?
             .join("notion-mg");
