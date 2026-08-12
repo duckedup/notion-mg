@@ -3,6 +3,7 @@ pub mod blocks;
 pub mod comments;
 pub mod common;
 pub mod databases;
+pub mod markdown;
 pub mod pages;
 pub mod search;
 pub mod users;
@@ -49,6 +50,10 @@ pub enum Commands {
     /// Work with comments
     #[command(subcommand)]
     Comments(comments::CommentsAction),
+
+    /// Convert Markdown into Notion blocks
+    #[command(subcommand)]
+    Markdown(markdown::MarkdownAction),
 
     /// Search across pages and databases
     Search(search::SearchArgs),

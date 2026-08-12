@@ -104,6 +104,30 @@ notion-mg blocks append <page-id> --children '[{"type": "paragraph", "paragraph"
 notion-mg blocks delete <block-id>
 ```
 
+### Markdown
+
+Convert a Markdown file into Notion blocks, without hand-writing block JSON.
+
+```bash
+# Print the blocks as JSON ("-" reads stdin)
+notion-mg markdown convert --file notes.md
+
+# Append the blocks to an existing page
+notion-mg markdown append --file notes.md --block-id <page-id>
+
+# Create a new child page from the file
+notion-mg markdown create --file notes.md --parent-page-id <page-id>
+```
+
+`create` takes its title from `--title`, falling back to the file's first heading and
+then the file name.
+
+Supported: headings, paragraphs, bulleted/numbered lists with nesting, GFM task lists,
+fenced code with language detection, block quotes, dividers, GFM tables, standalone
+images, and inline bold/italic/strikethrough/code/links. Anything else becomes a
+paragraph. Documents longer than Notion's 100-block request limit are appended in
+sequential batches.
+
 ### Users
 
 ```bash
