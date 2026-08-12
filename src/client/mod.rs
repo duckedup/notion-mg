@@ -90,6 +90,7 @@ impl NotionClient {
 
         match status.as_u16() {
             401 => Err(CliError::Auth(body)),
+            403 => Err(CliError::Forbidden(body)),
             404 => Err(CliError::NotFound(body)),
             429 => Err(CliError::RateLimited(body)),
             400 | 422 => Err(CliError::InvalidInput(body)),

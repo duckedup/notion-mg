@@ -147,12 +147,27 @@ notion-mg users get <user-id>
 ### Comments
 
 ```bash
-# List comments on a page
-notion-mg comments list --block-id <page-id>
+# Every comment on a document — page-level plus inline comments on each block
+notion-mg comments document --page-id <page-id>
+
+# List comments on one specific page or block
+notion-mg comments list --block-id <block-id>
 
 # Add a comment
 notion-mg comments create --page-id <page-id> --text "Looks good!"
 ```
+
+Notion only exposes comments per block, so `comments document` walks the block tree and
+queries each node — roughly one request per block, against a ~3 req/s rate limit. Use
+`--max-depth` to bound the descent (`0` fetches page-level comments only). Child pages
+and databases are skipped: they are separate documents.
+
+Each result carries the block it is anchored to (`anchor_id`, `anchor_type`,
+`anchor_text`), so an inline comment can be located in the document.
+
+The Notion API returns only **unresolved** comments; resolved threads are not
+retrievable. Reading comments also requires the "Read comments" capability on your
+integration, at [notion.so/profile/integrations](https://www.notion.so/profile/integrations).
 
 ### Search
 

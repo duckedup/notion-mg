@@ -1,3 +1,4 @@
+use crate::api::comments::DEFAULT_COMMENT_DEPTH;
 use crate::cli::common::PaginationArgs;
 use crate::client::NotionClient;
 use crate::client::paginator::{PaginationParams, paginate};
@@ -15,6 +16,16 @@ pub enum CommentsAction {
 
         #[command(flatten)]
         pagination: PaginationArgs,
+    },
+    /// List every comment on a document: page-level plus inline comments on each block
+    Document {
+        /// Page ID
+        #[arg(long)]
+        page_id: String,
+
+        /// How far to descend into nested blocks (0 = page-level comments only)
+        #[arg(long, default_value_t = DEFAULT_COMMENT_DEPTH)]
+        max_depth: usize,
     },
     /// Create a comment on a page
     Create {
@@ -53,6 +64,10 @@ impl CommentsAction {
                     },
                 )
                 .await?;
+                print_list(&comments, format)
+            }
+            Self::Document { page_id, max_depth } => {
+                let comments = client.fetch_document_comments(page_id, *max_depth).await?;
                 print_list(&comments, format)
             }
             Self::Create {

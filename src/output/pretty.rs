@@ -1,5 +1,5 @@
 use crate::api::blocks::Block;
-use crate::api::comments::Comment;
+use crate::api::comments::{AnchoredComment, Comment};
 use crate::api::databases::Database;
 use crate::api::pages::Page;
 use crate::api::search::SearchResponse;
@@ -232,6 +232,34 @@ impl PrettyPrint for Comment {
 
     fn headers() -> Vec<String> {
         vec!["ID".to_string(), "CREATED".to_string(), "TEXT".to_string()]
+    }
+}
+
+impl PrettyPrint for AnchoredComment {
+    fn pretty(&self) {
+        self.comment.pretty();
+        println!("  Anchor:  {} ({})", self.anchor_id, self.anchor_type);
+        if !self.anchor_text.is_empty() {
+            println!("  On:      {}", truncate(&self.anchor_text, 80));
+        }
+    }
+
+    fn pretty_row(&self) -> Vec<String> {
+        vec![
+            short_id(&self.comment.id),
+            self.anchor_type.clone(),
+            truncate(&self.anchor_text, 40),
+            truncate(&self.comment.plain_text(), 50),
+        ]
+    }
+
+    fn headers() -> Vec<String> {
+        vec![
+            "ID".to_string(),
+            "ANCHOR".to_string(),
+            "ON".to_string(),
+            "TEXT".to_string(),
+        ]
     }
 }
 
