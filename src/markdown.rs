@@ -57,9 +57,7 @@ pub fn chunk_blocks(blocks: Vec<Value>) -> Vec<Vec<Value>> {
         .collect()
 }
 
-// ---------------------------------------------------------------------------
-// Block-level parsers. Each returns the block plus the index to resume from.
-// ---------------------------------------------------------------------------
+// Every block-level parser returns its block plus the index to resume from.
 
 fn parse_fenced_code(lines: &[&str], start: usize) -> Option<(Value, usize)> {
     let trimmed = lines[start].trim_start();
@@ -243,10 +241,6 @@ fn starts_block(lines: &[&str], at: usize) -> bool {
         || list_marker(lines[at]).is_some()
 }
 
-// ---------------------------------------------------------------------------
-// Lists
-// ---------------------------------------------------------------------------
-
 #[derive(Debug, Clone, Copy, PartialEq)]
 enum Marker {
     Bulleted,
@@ -368,10 +362,6 @@ fn build_list(items: &[ListItem]) -> Vec<Value> {
 
     blocks
 }
-
-// ---------------------------------------------------------------------------
-// Inline formatting
-// ---------------------------------------------------------------------------
 
 #[derive(Debug, Clone, Copy, Default, PartialEq)]
 struct Annotations {
@@ -595,10 +585,6 @@ fn plain_rich_text(text: &str) -> Vec<Value> {
     push_text(text, Annotations::default(), None, &mut out);
     out
 }
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
 
 fn indent_width(line: &str) -> usize {
     line.chars()
