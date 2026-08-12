@@ -26,6 +26,9 @@ Get a Notion integration token from [notion.so/profile/integrations](https://www
 
 API key is resolved in order: `--api-key` flag > `NOTION_API_KEY` env var > config file.
 
+Set `NOTION_MG_CONFIG_DIR` to read and write the config somewhere other than the OS
+config directory — useful for CI, sandboxes, and keeping separate workspaces apart.
+
 ```bash
 # Store in config
 notion-mg auth init --token ntn_xxx
