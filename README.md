@@ -65,12 +65,20 @@ notion-mg pages create --parent-id <page-id> --title "New Page"
 # Create a page in a database
 notion-mg pages create --parent-id <db-id> --parent-type database --title "New Entry"
 
+# Create a page with an icon
+notion-mg pages create --parent-id <page-id> --title "Rate Tables" --icon 📐
+
 # Update a page
 notion-mg pages update <page-id> --properties '{"Status": {"select": {"name": "Done"}}}'
+
+# Change a page's icon
+notion-mg pages update <page-id> --icon 🚦
 
 # Archive a page
 notion-mg pages archive <page-id>
 ```
+
+`--icon` takes an emoji, or an `http(s)` URL for a hosted image.
 
 ### Databases
 
@@ -120,10 +128,13 @@ notion-mg markdown append --file notes.md --block-id <page-id>
 
 # Create a new child page from the file
 notion-mg markdown create --file notes.md --parent-page-id <page-id>
+
+# ...with a title and an icon of your own
+notion-mg markdown create --file spec.md --parent-page-id <page-id> --title "ENG-3210" --icon 🚦
 ```
 
 `create` takes its title from `--title`, falling back to the file's first heading and
-then the file name.
+then the file name, and its icon from `--icon`.
 
 Supported: headings, paragraphs, bulleted/numbered lists with nesting, GFM task lists,
 fenced code with language detection, block quotes, dividers, GFM tables, standalone

@@ -82,3 +82,12 @@ pub fn make_rich_text(content: &str) -> Vec<serde_json::Value> {
         "text": { "content": content }
     })]
 }
+
+/// A page icon from a CLI value: an `http(s)` URL is hosted elsewhere, anything else
+/// is taken as an emoji, since that is the only other icon Notion accepts inline.
+pub fn make_icon(value: &str) -> serde_json::Value {
+    if value.starts_with("http://") || value.starts_with("https://") {
+        return serde_json::json!({ "type": "external", "external": { "url": value } });
+    }
+    serde_json::json!({ "type": "emoji", "emoji": value })
+}

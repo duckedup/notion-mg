@@ -1,9 +1,10 @@
 mod common;
 
 use common::{json_response, setup_mock_server};
+use notion_mg::api::common::make_icon;
 use serde_json::json;
 use wiremock::Mock;
-use wiremock::matchers::{method, path};
+use wiremock::matchers::{body_partial_json, method, path};
 
 #[tokio::test]
 async fn test_get_page() {
@@ -83,4 +84,76 @@ async fn test_search_pages() {
         .unwrap();
     assert_eq!(response.results.len(), 1);
     assert_eq!(response.results[0].title(), "Found Page");
+}
+
+#[test]
+fn icon_reads_as_an_emoji_unless_it_is_a_url() {
+    assert_eq!(make_icon("🚦"), json!({ "type": "emoji", "emoji": "🚦" }));
+    assert_eq!(
+        make_icon("https://x.dev/i.png"),
+        json!({ "type": "external", "external": { "url": "https://x.dev/i.png" } })
+    );
+}
+
+#[tokio::test]
+async fn test_create_page_with_icon() {
+    let (server, client) = setup_mock_server().await;
+
+    Mock::given(method("POST"))
+        .and(path("/pages"))
+        .and(body_partial_json(
+            json!({ "icon": { "type": "emoji", "emoji": "🚦" } }),
+        ))
+        .respond_with(json_response(json!({
+            "object": "page",
+            "id": "page-1",
+            "created_time": "2023-01-01T00:00:00.000Z",
+            "last_edited_time": "2023-01-01T00:00:00.000Z",
+            "parent": { "type": "page_id", "page_id": "parent-1" },
+            "properties": {},
+            "icon": { "type": "emoji", "emoji": "🚦" }
+        })))
+        .mount(&server)
+        .await;
+
+    let page = client
+        .create_page(
+            json!({ "page_id": "parent-1" }),
+            json!({ "title": { "title": [] } }),
+            None,
+            Some(make_icon("🚦")),
+            None,
+        )
+        .await
+        .unwrap();
+    assert_eq!(page.icon, Some(json!({ "type": "emoji", "emoji": "🚦" })));
+}
+
+#[tokio::test]
+async fn test_update_page_icon() {
+    let (server, client) = setup_mock_server().await;
+    let page_id = "page-1";
+
+    Mock::given(method("PATCH"))
+        .and(path(format!("/pages/{page_id}")))
+        .and(body_partial_json(
+            json!({ "icon": { "type": "emoji", "emoji": "📐" } }),
+        ))
+        .respond_with(json_response(json!({
+            "object": "page",
+            "id": page_id,
+            "created_time": "2023-01-01T00:00:00.000Z",
+            "last_edited_time": "2023-06-15T12:00:00.000Z",
+            "parent": { "type": "page_id", "page_id": "parent-1" },
+            "properties": {},
+            "icon": { "type": "emoji", "emoji": "📐" }
+        })))
+        .mount(&server)
+        .await;
+
+    let page = client
+        .update_page(page_id, None, None, Some(make_icon("📐")), None, None)
+        .await
+        .unwrap();
+    assert_eq!(page.icon, Some(json!({ "type": "emoji", "emoji": "📐" })));
 }
