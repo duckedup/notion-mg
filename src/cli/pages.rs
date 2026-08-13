@@ -40,6 +40,10 @@ pub enum PagesAction {
         #[arg(long)]
         properties: Option<String>,
 
+        /// Page icon: an emoji, or an image URL
+        #[arg(long)]
+        icon: Option<String>,
+
         /// Page content blocks as JSON
         #[arg(long)]
         children: Option<String>,
@@ -52,6 +56,10 @@ pub enum PagesAction {
         /// Properties as JSON
         #[arg(long)]
         properties: Option<String>,
+
+        /// Page icon: an emoji, or an image URL
+        #[arg(long)]
+        icon: Option<String>,
 
         /// Archive the page
         #[arg(long)]
@@ -98,6 +106,7 @@ impl PagesAction {
                 parent_type,
                 title,
                 properties,
+                icon,
                 children,
             } => {
                 let parent = match parent_type.as_str() {
@@ -132,13 +141,20 @@ impl PagesAction {
                 };
 
                 let page = client
-                    .create_page(parent, props, children_parsed, None, None)
+                    .create_page(
+                        parent,
+                        props,
+                        children_parsed,
+                        icon.as_deref().map(crate::api::common::make_icon),
+                        None,
+                    )
                     .await?;
                 print_output(&page, format)
             }
             Self::Update {
                 id,
                 properties,
+                icon,
                 archive,
                 trash,
             } => {
@@ -151,7 +167,14 @@ impl PagesAction {
                 };
 
                 let page = client
-                    .update_page(id, props, *archive, None, None, *trash)
+                    .update_page(
+                        id,
+                        props,
+                        *archive,
+                        icon.as_deref().map(crate::api::common::make_icon),
+                        None,
+                        *trash,
+                    )
                     .await?;
                 print_output(&page, format)
             }

@@ -1,3 +1,4 @@
+use crate::api::common::make_icon;
 use crate::client::NotionClient;
 use crate::error::CliError;
 use crate::markdown::{chunk_blocks, markdown_to_blocks, parse_inline};
@@ -38,6 +39,10 @@ pub enum MarkdownAction {
         /// Page title (defaults to the file's first heading, then the file name)
         #[arg(long)]
         title: Option<String>,
+
+        /// Page icon: an emoji, or an image URL
+        #[arg(long)]
+        icon: Option<String>,
     },
 }
 
@@ -63,6 +68,7 @@ impl MarkdownAction {
                 file,
                 parent_page_id,
                 title,
+                icon,
             } => {
                 let source = read_source(file)?;
                 let blocks = markdown_to_blocks(&source);
@@ -79,7 +85,7 @@ impl MarkdownAction {
                             "title": { "title": parse_inline(&title) }
                         }),
                         chunks.next(),
-                        None,
+                        icon.as_deref().map(make_icon),
                         None,
                     )
                     .await?;
