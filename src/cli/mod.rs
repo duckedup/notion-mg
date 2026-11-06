@@ -3,6 +3,7 @@ pub mod blocks;
 pub mod comments;
 pub mod common;
 pub mod databases;
+pub mod files;
 pub mod markdown;
 pub mod pages;
 pub mod search;
@@ -50,6 +51,10 @@ pub enum Commands {
     /// Work with comments
     #[command(subcommand)]
     Comments(comments::CommentsAction),
+
+    /// Upload files and attach them to pages
+    #[command(subcommand)]
+    Files(files::FilesAction),
 
     /// Convert Markdown into Notion blocks
     #[command(subcommand)]
