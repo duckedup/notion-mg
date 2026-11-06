@@ -1,6 +1,7 @@
 use crate::api::blocks::Block;
 use crate::api::comments::{AnchoredComment, Comment};
 use crate::api::databases::Database;
+use crate::api::files::FileUpload;
 use crate::api::pages::Page;
 use crate::api::search::SearchResponse;
 use crate::api::users::User;
@@ -286,5 +287,46 @@ impl PrettyPrint for SearchResponse {
 
     fn headers() -> Vec<String> {
         vec!["RESULTS".to_string()]
+    }
+}
+
+impl PrettyPrint for FileUpload {
+    fn pretty(&self) {
+        println!(
+            "File upload: {}",
+            self.filename.as_deref().unwrap_or("(unnamed)")
+        );
+        println!("  ID:          {}", self.id);
+        println!("  Status:      {}", self.status);
+        if let Some(t) = &self.content_type {
+            println!("  Type:        {t}");
+        }
+        if let Some(n) = self.content_length {
+            println!("  Size:        {n} bytes");
+        }
+        println!("  Created:     {}", self.created_time);
+        if let Some(e) = &self.expiry_time {
+            println!("  Expires:     {e}");
+        }
+    }
+
+    fn pretty_row(&self) -> Vec<String> {
+        vec![
+            short_id(&self.id),
+            truncate(self.filename.as_deref().unwrap_or_default(), 40),
+            self.status.clone(),
+            self.content_type.clone().unwrap_or_default(),
+            self.created_time.clone(),
+        ]
+    }
+
+    fn headers() -> Vec<String> {
+        vec![
+            "ID".to_string(),
+            "FILENAME".to_string(),
+            "STATUS".to_string(),
+            "TYPE".to_string(),
+            "CREATED".to_string(),
+        ]
     }
 }

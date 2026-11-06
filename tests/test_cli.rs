@@ -117,3 +117,13 @@ fn test_empty_config_dir_reports_no_key() {
         .success()
         .stdout(predicate::str::contains("\"config_key_set\":false"));
 }
+
+#[test]
+fn test_files_help() {
+    Command::cargo_bin("notion-mg")
+        .unwrap()
+        .args(["files", "--help"])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("attach"));
+}

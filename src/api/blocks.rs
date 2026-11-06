@@ -25,9 +25,14 @@ pub struct Block {
 }
 
 impl Block {
+    /// File-like blocks (image, pdf, file, video, audio) have no `rich_text`; their only
+    /// text is the caption, so that stands in.
     pub fn plain_text(&self) -> String {
         if let Some(type_data) = self.content.get(&self.block_type)
-            && let Some(rich_texts) = type_data.get("rich_text").and_then(|r| r.as_array())
+            && let Some(rich_texts) = type_data
+                .get("rich_text")
+                .or_else(|| type_data.get("caption"))
+                .and_then(|r| r.as_array())
         {
             return rich_texts
                 .iter()

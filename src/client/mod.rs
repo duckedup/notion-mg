@@ -57,6 +57,17 @@ impl NotionClient {
         self.handle_response(response).await
     }
 
+    /// The form's multipart `Content-Type` replaces the client's default JSON one.
+    pub async fn post_multipart<T: DeserializeOwned>(
+        &self,
+        path: &str,
+        form: reqwest::multipart::Form,
+    ) -> Result<T, CliError> {
+        let url = format!("{}{path}", self.base_url);
+        let response = self.client.post(&url).multipart(form).send().await?;
+        self.handle_response(response).await
+    }
+
     pub async fn patch<T: DeserializeOwned>(
         &self,
         path: &str,

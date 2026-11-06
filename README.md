@@ -142,6 +142,23 @@ images, and inline bold/italic/strikethrough/code/links. Anything else becomes a
 paragraph. Documents longer than Notion's 100-block request limit are appended in
 sequential batches.
 
+### Files
+
+```bash
+# Upload a file and append it to a page (block type inferred: image, pdf, video, audio, or file)
+notion-mg files attach diagram.png --to <page-id> --caption "Architecture"
+
+# Choose the block type, or insert after a specific block
+notion-mg files attach report.pdf --to <page-id> --as file --after <block-id>
+
+# Upload only, returning an ID to reference elsewhere
+notion-mg files upload data.csv
+```
+
+Files over 20 MiB are uploaded in parts, which Notion allows only on paid workspaces
+(free workspaces cap a file at 5 MiB). An upload from `files upload` expires if it isn't
+attached within an hour.
+
 ### Users
 
 ```bash
